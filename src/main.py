@@ -1,15 +1,17 @@
 import numpy as np
 import cv2
 #79 200 30
-redLower = np.array([0, 0, 140])
-redUpper = np.array([40, 40, 255])
-
+redLower = np.array([0, 0, 120])
+redUpper = np.array([90, 90, 255])
+final_img = np.zeros((480, 640, 3))+255
 kernel = np.ones((5, 5), np.uint8)
 
 cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
     ret, frame = cap.read()
+    frame = cv2.flip(frame, 1)
+    print(frame.shape)
     red_extract = cv2.inRange(frame, redLower, redUpper)
     red_extract = cv2.erode(red_extract, kernel, iterations=2)
     red_extract = cv2.morphologyEx(red_extract, cv2.MORPH_OPEN, kernel)
@@ -17,8 +19,15 @@ while cap.isOpened():
     #cv2.imshow('win', red_extract)
     # Find contours in the image
     (cnts, _) = cv2.findContours(red_extract.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if len(cnts) > 0:
+        M = cv2.moments(cnts[0])
+        cx = int(M['m10'] / M['m00'])
+        cy = int(M['m01'] / M['m00'])
+        cv2.circle(final_img, (cx, cy), 10, (0, 0, 255), -1)
+
     img = cv2.drawContours(frame, cnts, -1, (0, 255, 0), 3)
     cv2.imshow('win2', img)
+    cv2.imshow('drawWin', final_img)
     k = cv2.waitKey(1) & 0xff
     if k == ord('q'):
         break
