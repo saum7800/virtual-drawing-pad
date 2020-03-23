@@ -3,6 +3,8 @@ import cv2
 #79 200 30
 redLower = np.array([0, 0, 120])
 redUpper = np.array([90, 90, 255])
+redLowerHSV = np.array([0, 150, 150])
+redUpperHSV = np.array([30, 255, 255])
 final_img = np.zeros((480, 640, 3))+255
 kernel = np.ones((5, 5), np.uint8)
 
@@ -12,11 +14,11 @@ while cap.isOpened():
     ret, frame = cap.read()
     frame = cv2.flip(frame, 1)
     print(frame.shape)
-    red_extract = cv2.inRange(frame, redLower, redUpper)
-    red_extract = cv2.erode(red_extract, kernel, iterations=2)
-    red_extract = cv2.morphologyEx(red_extract, cv2.MORPH_OPEN, kernel)
+    im_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    red_extract = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
+#    red_extract = cv2.morphologyEx(red_extract, cv2.MORPH_OPEN, kernel)
     red_extract = cv2.dilate(red_extract, kernel, iterations=1)
-    #cv2.imshow('win', red_extract)
+    cv2.imshow('win', red_extract)
     # Find contours in the image
     (cnts, _) = cv2.findContours(red_extract.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if len(cnts) > 0:

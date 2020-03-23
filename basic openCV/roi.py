@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 
+hsv_green = cv.cvtColor(green,cv.COLOR_BGR2HSV)
+hsv_red = cv2.cvtColor(red, cv2.COLOR_BGR2HSV)
+print(hsv_red)
 img = cv2.imread('stuff.jpg')
 cv2.imshow('image', img)
 cv2.waitKey(0)
