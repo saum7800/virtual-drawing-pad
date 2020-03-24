@@ -28,7 +28,6 @@ while cap.isOpened():
     print(frame.shape)
     im_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     red_extract = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
-#    red_extract = cv2.morphologyEx(red_extract, cv2.MORPH_OPEN, kernel)
     red_extract = cv2.dilate(red_extract, kernel, iterations=1)
     cv2.imshow('win', red_extract)
     # Find contours in the image
@@ -44,9 +43,12 @@ while cap.isOpened():
                     cv2.circle(final_img, (cx,cy), 10, (255, 255, 255), -1)
                 else:
                     cv2.line(final_img, (prev_cx, prev_cy), (cx, cy), (0, 0, 0), 2)
+        og = final_img.copy()
+        cv2.circle(final_img, (cx, cy), 4, (255, 0, 0), 2)
         prev_cx = cx
         prev_cy = cy
     else:
+        og = final_img.copy()
         prev_cx = None
         prev_cy = None
 
@@ -60,7 +62,8 @@ while cap.isOpened():
         drawing = not drawing
     elif k == ord('e'):
         erasing = not erasing
+    final_img = og.copy()
 win_name = win_name + ".jpg"
-#cv2.imwrite(win_name, final_img)
+cv2.imwrite(win_name, final_img)
 cap.release()
 cv2.destroyAllWindows()

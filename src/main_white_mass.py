@@ -30,7 +30,6 @@ while cap.isOpened():
     white_mass = np.nonzero(red_extract)
     cy = np.sum(white_mass[0])/len(white_mass[0])
     cx = np.sum(white_mass[1])/len(white_mass[1])
-
     if drawing is True and not(math.isnan(cx)) and not(math.isnan(cy)):
         cx = int(cx)
         cy = int(cy)
@@ -40,9 +39,14 @@ while cap.isOpened():
                     cv2.circle(final_img, (cx,cy), 10, (255, 255, 255), -1)
                 else:
                     cv2.line(final_img, (prev_cx, prev_cy), (cx, cy), (0, 0, 0), 2)
+        og = final_img.copy()
+        cv2.circle(final_img, (cx, cy), 4, (255, 0, 0), 2)
         prev_cx = cx
         prev_cy = cy
     else:
+        og = final_img.copy()
+        if not(math.isnan(cx)) and not(math.isnan(cy)):
+            cv2.circle(final_img, (int(cx), int(cy)), 4, (255, 0, 0), 2)
         prev_cx = None
         prev_cy = None
 
@@ -54,6 +58,7 @@ while cap.isOpened():
         drawing = not drawing
     elif k == ord('e'):
         erasing = not erasing
+    final_img = og.copy()
 win_name = win_name + ".jpg"
 cv2.imwrite(win_name, final_img)
 cap.release()
