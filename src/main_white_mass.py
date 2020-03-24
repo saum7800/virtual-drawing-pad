@@ -1,9 +1,6 @@
 import numpy as np
 import cv2
-
-
-redLower = np.array([0, 0, 120])
-redUpper = np.array([90, 90, 255])
+import math
 
 redLowerHSV = np.array([0, 170, 170])
 redUpperHSV = np.array([10, 255, 255])
@@ -28,16 +25,15 @@ while cap.isOpened():
     print(frame.shape)
     im_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     red_extract = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
-#    red_extract = cv2.morphologyEx(red_extract, cv2.MORPH_OPEN, kernel)
-    red_extract = cv2.dilate(red_extract, kernel, iterations=1)
+    red_extract = cv2.dilate(red_extract, kernel, iterations=2)
     cv2.imshow('win', red_extract)
-    # Find contours in the image
-    (cnts, _) = cv2.findContours(red_extract.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if len(cnts) > 0 and drawing is True:
-        cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
-        M = cv2.moments(cnts[0])
-        cx = int(M['m10'] / M['m00'])
-        cy = int(M['m01'] / M['m00'])
+    white_mass = np.nonzero(red_extract)
+    cy = np.sum(white_mass[0])/len(white_mass[0])
+    cx = np.sum(white_mass[1])/len(white_mass[1])
+
+    if drawing is True and not(math.isnan(cx)) and not(math.isnan(cy)):
+        cx = int(cx)
+        cy = int(cy)
         if prev_cx is not None:
             if abs(cx - prev_cx) <= 30 and abs(cy - prev_cy) <= 30:
                 if erasing is True:
@@ -50,8 +46,6 @@ while cap.isOpened():
         prev_cx = None
         prev_cy = None
 
-    img = cv2.drawContours(frame, cnts, -1, (0, 255, 0), 3)
-    cv2.imshow('win2', img)
     cv2.imshow(win_name, final_img)
     k = cv2.waitKey(1) & 0xff
     if k == ord('q'):
@@ -61,6 +55,6 @@ while cap.isOpened():
     elif k == ord('e'):
         erasing = not erasing
 win_name = win_name + ".jpg"
-#cv2.imwrite(win_name, final_img)
+cv2.imwrite(win_name, final_img)
 cap.release()
 cv2.destroyAllWindows()
