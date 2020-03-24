@@ -8,7 +8,7 @@ has been implemented in two ways:
 2. detect the contours in the image and consider the one with largest area to be required contour.
 3. plot line from centroid of previous contour to the centroid of current contour.
 
-### 2. Centre of white-mass
+### 2. Mean of white-mass
 1. threshold the HSV (for adapting to different lighting conditions) converted image to find the red portions of image.
 2. take mean of all the x-coordinates and the y-coordinates that are white in the thresholded image. This will give us the mean
 position at which we have to plot the point. 
