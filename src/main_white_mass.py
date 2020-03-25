@@ -19,14 +19,20 @@ win_name = input("name of image:")
 
 cap = cv2.VideoCapture(0)
 
+gamma = 0.5
+lookUpTable = np.empty((1, 256), np.uint8)
+for i in range(256):
+    lookUpTable[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+
 while cap.isOpened():
     ret, frame = cap.read()
     frame = cv2.flip(frame, 1)
-    print(frame.shape)
-    im_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_bright = cv2.LUT(frame, lookUpTable)
+    #print(frame.shape)
+    im_hsv = cv2.cvtColor(frame_bright, cv2.COLOR_BGR2HSV)
     red_extract = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
     red_extract = cv2.dilate(red_extract, kernel, iterations=2)
-    cv2.imshow('win', red_extract)
+    #cv2.imshow('win', red_extract)
     white_mass = np.nonzero(red_extract)
     cy = np.sum(white_mass[0])/len(white_mass[0])
     cx = np.sum(white_mass[1])/len(white_mass[1])
@@ -49,7 +55,8 @@ while cap.isOpened():
             cv2.circle(final_img, (int(cx), int(cy)), 4, (255, 0, 0), 2)
         prev_cx = None
         prev_cy = None
-
+    #cv2.imshow('winrand',frame)
+    cv2.imshow('winbright', frame_bright)
     cv2.imshow(win_name, final_img)
     k = cv2.waitKey(1) & 0xff
     if k == ord('q'):

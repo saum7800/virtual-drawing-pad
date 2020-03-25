@@ -22,14 +22,21 @@ win_name = input("name of image:")
 
 cap = cv2.VideoCapture(0)
 
+#increasing brightness of image
+gamma = 0.5
+lookUpTable = np.empty((1, 256), np.uint8)
+for i in range(256):
+    lookUpTable[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+
 while cap.isOpened():
     ret, frame = cap.read()
     frame = cv2.flip(frame, 1)
-    print(frame.shape)
-    im_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+#    print(frame.shape)
+    frame_bright = cv2.LUT(frame, lookUpTable)
+    im_hsv = cv2.cvtColor(frame_bright, cv2.COLOR_BGR2HSV)
     red_extract = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
     red_extract = cv2.dilate(red_extract, kernel, iterations=1)
-    cv2.imshow('win', red_extract)
+    #cv2.imshow('win', red_extract)
     # Find contours in the image
     (cnts, _) = cv2.findContours(red_extract.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if len(cnts) > 0 and drawing is True:
@@ -53,7 +60,7 @@ while cap.isOpened():
         prev_cy = None
 
     img = cv2.drawContours(frame, cnts, -1, (0, 255, 0), 3)
-    cv2.imshow('win2', img)
+    cv2.imshow('win', frame_bright)
     cv2.imshow(win_name, final_img)
     k = cv2.waitKey(1) & 0xff
     if k == ord('q'):
