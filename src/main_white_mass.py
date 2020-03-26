@@ -5,6 +5,9 @@ import math
 redLowerHSV = np.array([0, 170, 170])
 redUpperHSV = np.array([10, 255, 255])
 
+redLowerHSV2 = np.array([161, 170, 170])
+redUpperHSV2 = np.array([179, 255, 255])
+
 final_img = np.zeros((480, 640, 3))+255
 
 kernel = np.ones((5, 5), np.uint8)
@@ -30,9 +33,13 @@ while cap.isOpened():
     frame_bright = cv2.LUT(frame, lookUpTable)
     #print(frame.shape)
     im_hsv = cv2.cvtColor(frame_bright, cv2.COLOR_BGR2HSV)
-    red_extract = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
-    red_extract = cv2.dilate(red_extract, kernel, iterations=2)
-    #cv2.imshow('win', red_extract)
+    cv2.imshow('hsv', im_hsv)
+    red_extract1 = cv2.inRange(im_hsv, redLowerHSV, redUpperHSV)
+    red_extract1 = cv2.dilate(red_extract1, kernel, iterations=2)
+    red_extract2 = cv2.inRange(im_hsv, redLowerHSV2, redUpperHSV2)
+    red_extract2 = cv2.dilate(red_extract2, kernel, iterations=2)
+    red_extract = cv2.add(red_extract1, red_extract2)
+    cv2.imshow('win', red_extract)
     white_mass = np.nonzero(red_extract)
     cy = np.sum(white_mass[0])/len(white_mass[0])
     cx = np.sum(white_mass[1])/len(white_mass[1])
@@ -40,11 +47,10 @@ while cap.isOpened():
         cx = int(cx)
         cy = int(cy)
         if prev_cx is not None:
-            if abs(cx - prev_cx) <= 30 and abs(cy - prev_cy) <= 30:
-                if erasing is True:
-                    cv2.circle(final_img, (cx,cy), 10, (255, 255, 255), -1)
-                else:
-                    cv2.line(final_img, (prev_cx, prev_cy), (cx, cy), (0, 0, 0), 2)
+            if erasing is True:
+                cv2.circle(final_img, (cx,cy), 10, (255, 255, 255), -1)
+            else:
+                cv2.line(final_img, (prev_cx, prev_cy), (cx, cy), (0, 0, 0), 2)
         og = final_img.copy()
         cv2.circle(final_img, (cx, cy), 4, (255, 0, 0), 2)
         prev_cx = cx
@@ -67,6 +73,6 @@ while cap.isOpened():
         erasing = not erasing
     final_img = og.copy()
 win_name = win_name + ".jpg"
-cv2.imwrite(win_name, final_img)
+#cv2.imwrite(win_name, final_img)
 cap.release()
 cv2.destroyAllWindows()
