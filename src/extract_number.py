@@ -14,9 +14,11 @@ redUpperHSV2 = np.array([179, 255, 255])
 # init final image, variables, kernel
 final_img = np.zeros((480, 640, 3)) + 255
 
-kernel = np.ones((5, 5), np.uint8)
+kernel = np.ones((3, 3), np.uint8)
 
 model = tf.keras.models.load_model('myEmnistModel.h5')
+class_mapping = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt'
+final_str = ""
 
 drawing = False
 erasing = False
@@ -95,29 +97,26 @@ boundRect = [None] * len(cnts)
 alphanumeric_images = [None] * len(cnts)
 
 # get bounding rectangles
-for i, c in enumerate(cnts):
-    contours_poly[i] = cv2.approxPolyDP(c, 3, True)
-    boundRect[i] = cv2.boundingRect(contours_poly[i])
-
+boundRect = [cv2.boundingRect(c) for c in cnts]
+(cnts, boundRect) = zip(*sorted(zip(cnts, boundRect), key=lambda b: b[1][0], reverse=False))
 # extract images and resize them according to neural network input
 for i in range(len(cnts)):
-    alphanumeric_images[i] = img_bw[int(boundRect[i][1]):int(boundRect[i][1]+boundRect[i][3]), int(boundRect[i][0]):int(boundRect[i][0]+boundRect[i][2])]
-    alphanumeric_images[i] = cv2.resize(alphanumeric_images[i], (28, 28))
+    alphanumeric_images[i] = img_bw[int(boundRect[i][1]):int(boundRect[i][1] + boundRect[i][3]),
+                             int(boundRect[i][0]):int(boundRect[i][0] + boundRect[i][2])]
+    alphanumeric_images[i] = cv2.resize(alphanumeric_images[i], (24, 24))
     alphanumeric_images[i] = 255 - alphanumeric_images[i]
+    #    alphanumeric_images[i] = cv2.dilate(alphanumeric_images[i], kernel, iterations=1)
+    alphanumeric_images[i] = cv2.copyMakeBorder(alphanumeric_images[i], 2, 2, 2, 2, cv2.BORDER_CONSTANT, None, 0)
     cv2.imshow('windah', alphanumeric_images[i])
     cv2.waitKey(0)
-    alphanumeric_images[i] = alphanumeric_images[i]/255.0
+    alphanumeric_images[i] = alphanumeric_images[i] / 255.0
     alphanumeric_images[i] = np.reshape(alphanumeric_images[i], (1, 28, 28))
-    # cv2.imwrite('extract_'+str(i), alphanumeric_images[i]/255)
-
-pred = model.predict(alphanumeric_images[0])
-maxVal, maxInd = np.max(pred), np.argmax(pred)
-class_mapping = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabdefghnqrt'
-cv2.waitKey(0)
-print(maxVal)
-print(class_mapping[maxInd])
-print(pred)
-win_name = win_name + ".jpg"
-cv2.imwrite(win_name, alphanumeric_images[0])
+    final_str = final_str + class_mapping[np.argmax(tf.nn.softmax(model.predict(alphanumeric_images[i])))]
 cap.release()
 cv2.destroyAllWindows()
+print(final_str)
+# O->D
+# 1->2,g
+# 3->B
+# 5->B
+#
